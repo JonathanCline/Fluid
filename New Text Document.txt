@@ -1,0 +1,36 @@
+#  This is the top level CMake for Fluid. Project is
+# split into sections for organizational purposes
+
+# 3.2 would probably work as well
+cmake_minimum_required(VERSION 3.8)
+
+#
+# Add the local directory if it exists, this makes development easier
+#
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/local")
+	add_subdirectory("local")
+endif()
+
+
+#
+#	Utility Macros
+#
+
+macro(ADD_SOURCES_LIST toTarget sourceList)
+	list(TRANSFORM ${sourceList} PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
+	set(lfiles )
+	foreach (lfe IN LISTS ${sourceList})
+		list(APPEND lfiles ${lfe})
+	endforeach()
+	target_sources(${toTarget} PRIVATE ${lfiles})
+endmacro(ADD_SOURCES_LIST)
+
+#
+#	Subprojects
+#
+
+add_subdirectory("Fluid")
+
+add_subdirectory("test")
+
+
