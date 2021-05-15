@@ -17,6 +17,9 @@ set(lib_link_private
 	glfw
 	glad
 	liblua
+
+	JCLib
+	jclua
 	
 	SAELib)
 

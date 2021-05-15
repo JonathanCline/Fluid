@@ -1,9 +1,46 @@
 #pragma once
 
+#include <string>
+#include <filesystem>
+#include <cstdint>
+
 namespace fluid
 {
 	struct FluidState;
 
 	FluidState* start_fluid();
 	void shutdown_fluid(FluidState*& _fluid);
+
+	void update(FluidState& _fluid);
+
 };
+
+namespace fluid
+{
+	using FluidEntity = uint32_t;
+
+	FluidEntity new_entity(FluidState& _fstate);
+	void destroy_entity(FluidState& _fstate, FluidEntity& _entity);
+
+
+
+
+
+	enum ComponentType
+	{
+		ctScript,
+		ctElement
+	};
+	
+	void add_component(FluidState& _fstate, FluidEntity _entity, ComponentType _type);
+	bool has_component(FluidState& _fstate, FluidEntity _entity, ComponentType _type);
+	void remove_component(FluidState& _fstate, FluidEntity _entity, ComponentType _type);
+
+
+	void set_script_path(FluidState& _fstate, FluidEntity _entity, const std::filesystem::path& _path);
+
+
+
+
+};
+

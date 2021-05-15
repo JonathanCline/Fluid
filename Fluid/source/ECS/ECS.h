@@ -1,7 +1,7 @@
 #pragma once
 
 #include <SAELib_KeyVector.h>
-#include <SAELib_Decorator.h>
+#include <SAELib_Type.h>
 
 #include <cassert>
 #include <cstdint>
@@ -74,9 +74,39 @@ namespace PROJECT_NAMESPACE
 	
 	};
 
-	template <typename ComponentT>
-	class ComponentSystem : public AbstractComponentSystem
+
+	namespace impl
 	{
+		template <typename T, typename ComponentT>
+		struct component_helper_dc : public AbstractComponentSystem
+		{
+		private:
+			sae::kvector<Entity, ComponentT>& get_data() { return static_cast<T*>(this)->container(); };
+		public:
+			void insert(Entity _e) override
+			{
+				this->get_data().insert({ _e, ComponentT{} });
+			};
+		};
+
+		template <typename T, typename C>
+		using make_csystem_helper = sae::type_switch_t<
+			(size_t)std::is_default_constructible_v<C>,
+			AbstractComponentSystem,
+			component_helper_dc<T, C>
+		>;
+	};
+
+	template <typename ComponentT>
+	class ComponentSystem : public impl::make_csystem_helper<ComponentSystem<ComponentT>, ComponentT>
+	{
+	public:
+		using component_type = ComponentT;
+		sae::kvector<Entity, ComponentT>& container()
+		{
+			return this->data_;
+		};
+
 	protected:
 		auto begin() noexcept { return this->data_.begin(); };
 		auto cbegin() const noexcept { return this->data_.begin(); };
@@ -86,9 +116,12 @@ namespace PROJECT_NAMESPACE
 		auto cend() const noexcept { return this->data_.end(); };
 		auto end() const noexcept { return this->cend(); };
 
-	public:
+		void set_component(Entity _e, component_type _component)
+		{
+			this->data_.insert({ _e, std::move(_component) });
+		};
 
-		using component_type = ComponentT;
+	public:
 
 		// aborts if contains(_e) would return false
 		component_type& at(Entity _e)
@@ -104,16 +137,7 @@ namespace PROJECT_NAMESPACE
 		auto& operator[](Entity _e) { return this->at(_e); };
 		const auto& operator[](Entity _e) const { return this->at(_e); };
 
-	protected:
-		virtual component_type make_component(Entity _e) = 0;
-
 	public:
-
-
-		void insert(Entity _e) override
-		{
-			this->data_.insert({ _e, this->make_component(_e) });
-		};
 		bool contains(Entity _e) const override
 		{
 			return this->data_.contains(_e);
@@ -134,6 +158,7 @@ namespace PROJECT_NAMESPACE
 		sae::kvector<Entity, ComponentT> data_;
 	};
 
+
 	class EntityComponentSystem
 	{
 	public:
@@ -144,6 +169,18 @@ namespace PROJECT_NAMESPACE
 		AbstractComponentSystem* insert_impl(std::unique_ptr<AbstractComponentSystem> _system);
 
 	public:
+		auto begin() noexcept { return this->data_.begin(); };
+		auto begin() const noexcept { return this->data_.cbegin(); };
+		auto cbegin() const noexcept { return this->data_.cbegin(); };
+		
+		auto end() noexcept { return this->data_.end(); };
+		auto end() const noexcept { return this->data_.cend(); };
+		auto cend() const noexcept { return this->data_.cend(); };
+
+
+
+
+
 		template <std::derived_from<AbstractComponentSystem> T>
 		T* insert(std::unique_ptr<T> _system)
 		{
@@ -154,9 +191,6 @@ namespace PROJECT_NAMESPACE
 		{
 			return insert(std::unique_ptr<T>{ _system });
 		};
-
-
-
 
 
 		size_t erase(AbstractComponentSystem* _system);
@@ -179,5 +213,19 @@ namespace PROJECT_NAMESPACE
 
 	};
 
+
+};
+
+
+namespace PROJECT_NAMESPACE
+{
+	template <typename T>
+	struct component_system_type;
+
+	template <typename T>
+	concept cx_component = requires () { typename component_system_type<T>::type; };
+
+	template <cx_component T>
+	using component_system_type_t = typename component_system_type<T>::type;
 
 };
