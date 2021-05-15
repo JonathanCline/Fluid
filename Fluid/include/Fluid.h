@@ -37,8 +37,17 @@ namespace fluid
 	void remove_component(FluidState& _fstate, FluidEntity _entity, ComponentType _type);
 
 
-	void set_script_path(FluidState& _fstate, FluidEntity _entity, const std::filesystem::path& _path);
 
+	void set_script_path(FluidState& _fstate, FluidEntity _entity, const std::filesystem::path& _path);
+	bool execute_script(FluidState& _fstate, FluidEntity _entity);
+
+
+
+
+	std::vector<FluidEntity> get_elements(FluidState& _fstate);
+
+	void set_element_name(FluidState& _fstate, FluidEntity _entity, const std::string& _name);
+	std::string get_element_name(FluidState& _fstate, FluidEntity _entity);
 
 
 
