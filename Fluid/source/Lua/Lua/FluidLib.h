@@ -21,10 +21,11 @@ namespace PROJECT_NAMESPACE::lua
 		static int new_entity(lua_State* _lua)
 		{
 			auto _entity = fluid::new_entity();
-			auto _memory = (decltype(_entity)*)lua_newuserdata(_lua, sizeof(_entity));
+
+			using type = decltype(_entity);
+			auto _memory = (type*)lua_newuserdata(_lua, sizeof(_entity));
 			*_memory = _entity;
 			luaL_setmetatable(_lua, entity_typename);
-
 			return 1;
 		};
 		static int destroy_entity(lua_State* _lua)
