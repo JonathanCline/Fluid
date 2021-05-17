@@ -14,7 +14,8 @@ namespace fluid
 	enum ComponentType
 	{
 		ctScript,
-		ctElement
+		ctElement,
+		ctPanel
 	};
 
 
@@ -47,5 +48,12 @@ namespace fluid
 	std::vector<FluidEntity> get_elements();
 	void set_element_name(FluidEntity _entity, const std::string& _name);
 	std::string get_element_name(FluidEntity _entity);
+
+
+
+
+	void set_panel_resize_callback(FluidEntity _entity, void(*)(FluidEntity, int, int));
+
+
 
 };

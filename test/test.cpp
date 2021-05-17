@@ -23,13 +23,21 @@ int main()
 {
 	fluid::start_fluid();
 
-	sae::timer _timer{ sae::seconds{ 60 } };
+	sae::timer _timer{ sae::seconds{ 30 } };
 
 	auto _yourMom = fluid::new_entity();
 
 	fluid::add_component(_yourMom, fluid::ctScript);
 	fluid::set_script_path(_yourMom, TEST_SCRIPT_PATH, true);
 	fluid::reload_script(_yourMom);
+
+	fluid::add_component(_yourMom, fluid::ctPanel);
+	assert(fluid::has_component(_yourMom, fluid::ctPanel));
+	
+	fluid::set_panel_resize_callback(_yourMom, [](fluid::FluidEntity _entity, int _width, int _height)
+		{
+			std::cout << _width << ", " << _height << '\n';
+		});
 
 	_timer.start();
 	while (!_timer.finished())

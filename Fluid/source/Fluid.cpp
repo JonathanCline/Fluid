@@ -33,9 +33,26 @@ namespace fluid
 
 		Window main_window{};
 
+		static auto& get_panelsys(GLFWwindow* _window)
+		{
+			auto _this = (FluidState*)glfwGetWindowUserPointer(_window);
+			assert(_this);
+			return *_this->csystems.get<component_type_t<ctPanel>>();
+		};
+
 		FluidState()
 		{
 			this->csystems.add_to_ecs(this->ecs);
+
+			auto& _panelsys = csystems.get<component_type_t<ctPanel>>();
+			
+			glfwSetWindowUserPointer(this->main_window, this);
+			glfwSetFramebufferSizeCallback(main_window, [](GLFWwindow* _window, int _w, int _h)
+				{
+					auto& _panels = get_panelsys(_window);
+					_panels.push_event(Event_Resize{ _w, _h });
+				});
+
 		};
 	};
 };
@@ -93,7 +110,13 @@ namespace fluid
 	void update()
 	{
 		auto& _fluid = fluid_state();
+		
+		auto& _window = _fluid.main_window;
+		_window.clear();
+
 		_fluid.ecs.update();
+
+		_window.refresh();
 	};
 
 };
@@ -225,3 +248,13 @@ namespace fluid
 	};
 };
 
+namespace fluid
+{
+	void set_panel_resize_callback(FluidEntity _entity, void(*_func)(FluidEntity, int, int))
+	{
+		auto& _comp = get_component<ctPanel>(_entity);
+		_comp.on_resize = _func;
+	};
+
+
+};

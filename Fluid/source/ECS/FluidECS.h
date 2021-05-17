@@ -4,10 +4,9 @@
 
 #include "Component/Element.h"
 #include "Component/Script.h"
+#include "Component/Panel.h"
 
 #include "Utility/Type.h"
-
-
 
 namespace PROJECT_NAMESPACE
 {
@@ -16,12 +15,9 @@ namespace PROJECT_NAMESPACE
 	*/
 	using component_typelist = std::tuple<
 		Script,
-		Element
+		Element,
+		Panel
 	>;
-
-
-
-
 
 
 

@@ -34,6 +34,8 @@ namespace PROJECT_NAMESPACE
 	template <typename T, typename Tup>
 	concept type_in = is_type_in_v<T, Tup>;
 
+	template <typename T, typename Tup>
+	concept tuple_element = type_in<T, Tup>;
 
 
 	using ts = std::tuple<int, bool, bool>;
