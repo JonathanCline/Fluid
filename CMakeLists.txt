@@ -19,6 +19,12 @@ macro(ADD_SOURCES_LIST toTarget sourceList)
 	target_sources(${toTarget} PRIVATE ${lfiles})
 endmacro(ADD_SOURCES_LIST)
 
+macro(ADD_SUBDIRS_LIST subList)
+	foreach(lfe IN LISTS ${subList})
+		add_subdirectory(${lfe})
+	endforeach()
+endmacro(ADD_SUBDIRS_LIST)
+
 
 add_subdirectory("Fluid")
 add_subdirectory("test")

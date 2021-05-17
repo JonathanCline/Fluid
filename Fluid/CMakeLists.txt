@@ -8,7 +8,8 @@ set(lib_include_public
 	"include")
 
 set(lib_include_private
-	"source")
+	"source"
+	"source/Lua")
 
 set(lib_link_public
 	)

@@ -1,9 +1,9 @@
 
 set(add_sources
 	"ECS.h"
-	"ECS.cpp")
+	"ECS.cpp"
+
+	"FluidECS.h")
 
 
-
-list(TRANSFORM add_sources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
-target_sources(${PROJECT_NAME} PRIVATE ${add_sources})
+ADD_SOURCES_LIST(${PROJECT_NAME} add_sources)
