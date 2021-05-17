@@ -1,5 +1,7 @@
 #pragma once
 
+#include "LuaAPI.h"
+
 #include "ECS/ECS.h"
 
 #include <jclua/Table.h>

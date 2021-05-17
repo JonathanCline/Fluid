@@ -5,6 +5,10 @@
 #include "Component/Element.h"
 #include "Component/Script.h"
 
+#include "Utility/Type.h"
+
+
+
 namespace PROJECT_NAMESPACE
 {
 	/**
@@ -32,9 +36,9 @@ namespace PROJECT_NAMESPACE
 	template <sae::cx_tuple_element<component_typelist> T>
 	struct component_enum
 	{
-		constexpr static auto value = (ComponentType)sae::tuple_element_index_v<component_typelist, T>;
+		constexpr static auto value = (ComponentType)tuple_element_index_v<component_typelist, T>;
 	};
-	template <sae::cx_tuple_element<component_typelist> T>
+	template <type_in<component_typelist> T>
 	constexpr static auto component_enum_v = component_enum<T>::value;
 
 	namespace impl

@@ -2,23 +2,15 @@
 
 #include "Window/Window.h"
 
-#include "ECS/ECS.h"
-#include "Component/Script.h"
-#include "Component/Element.h"
-
 #include "Utility/Memory.h"
 #include "Utility/Singleton.h"
 #include "Utility/Pimpl.h"
 
-
+#include "ECS/FluidECS.h"
 
 #include "LuaAPI.h"
 
-#include "ECS/FluidECS.h"
 
-
-#include <SAELib_Type.h>
-#include <SAELib_TupleIndex.h>
 
 
 #include <GLFW/glfw3.h>
@@ -174,168 +166,6 @@ namespace fluid::impl
 
 
 };
-namespace fluid::impl::lua
-{
-	struct Lib_Fluid
-	{
-	private:
-		constexpr static const char* entity_typename = "Fluid.Type.Entity";
-
-		static fluid::FluidState& get_fstate(lua_State* _lua)
-		{
-			auto _fstate = (FluidState*)lua_touserdata(_lua, lua_upvalueindex(1));
-			lua_assert(_fstate);
-			return *_fstate;
-		};
-		static fluid::Entity& lua_toentity(lua_State* _lua, int _atIndex)
-		{
-			auto _out = (fluid::Entity*)luaL_checkudata(_lua, lua_absindex(_lua, _atIndex), entity_typename);
-			lua_assert(_out);
-			return *_out;
-		};
-
-		static int new_entity(lua_State* _lua)
-		{
-			auto& _fstate = get_fstate(_lua);
-			auto _entity = fluid::impl::new_entity(_fstate);
-
-			auto _memory = (decltype(_entity)*)lua_newuserdata(_lua, sizeof(_entity));
-			*_memory = _entity;
-			luaL_setmetatable(_lua, entity_typename);
-
-			return 1;
-		};
-		static int destroy_entity(lua_State* _lua)
-		{
-			auto& _fstate = get_fstate(_lua);
-			auto& _entity = lua_toentity(_lua, 1);
-			fluid::impl::destroy_entity(_fstate, _entity);
-			return 0;
-		};
-
-
-
-		
-		static int has_component(lua_State* _lua)
-		{
-			auto& _fstate = get_fstate(_lua);
-			auto& _entity = lua_toentity(_lua, 1);
-			const auto _type = luaL_checkinteger(_lua, 2);
-			lua_pushboolean(_lua, fluid::impl::has_component(_fstate, _entity, (ComponentType)_type));
-			return 1;
-		};
-
-		constexpr static luaL_Reg entityfuncs[] =
-		{
-			{ "new", new_entity },
-			{ "has", has_component },
-			{ "__gc", destroy_entity },
-			{ NULL, NULL }
-		};
-
-
-
-		static int add_component(lua_State* _lua)
-		{
-			auto& _fstate = get_fstate(_lua);
-			auto& _entity = lua_toentity(_lua, 1);
-			const auto _type = (ComponentType)luaL_checkinteger(_lua, 2);
-			fluid::impl::add_component(_fstate, _entity, _type);
-			return 0;
-		};
-
-		static int yield(lua_State* _lua)
-		{
-			return lua_yield(_lua, 0);
-		};
-
-		constexpr static luaL_Reg libfuncs[] =
-		{
-			{ "add_component", add_component },
-			{ "yield", yield },
-			{ NULL, NULL }
-		};
-
-	public:
-		static int openlib(lua_State* _lua, FluidState* _fstate)
-		{
-			luaL_newlibtable(_lua, libfuncs);
-			const auto _idx = lua_gettop(_lua);
-
-			lua_pushlightuserdata(_lua, _fstate);
-			luaL_setfuncs(_lua, libfuncs, 1);
-
-
-			// push component type enumerators
-
-			lua_pushinteger(_lua, (lua_Integer)ctScript);
-			lua_setfield(_lua, _idx, "ctScript");
-
-			lua_pushinteger(_lua, (lua_Integer)ctElement);
-			lua_setfield(_lua, _idx, "ctElement");
-
-
-			lua_newtable(_lua);
-			const auto _component = lua_gettop(_lua);
-
-			{
-				lua_newtable(_lua);
-				const auto _element = lua_gettop(_lua);
-				
-				lua_pushlightuserdata(_lua, _fstate);
-				lua_pushcclosure(_lua, [](lua_State* _lua) -> int
-					{
-						auto& _fstate = get_fstate(_lua);
-						auto& _entity = lua_toentity(_lua, 1);
-						const auto& _name = get_component<ctElement>(_fstate, _entity).name;
-						lua_pushstring(_lua, _name.c_str());
-						return 1;
-					}, 1);
-				lua_setfield(_lua, _element, "get_name");
-
-				lua_pushlightuserdata(_lua, _fstate);
-				lua_pushcclosure(_lua, [](lua_State* _lua) -> int
-					{
-						auto& _fstate = get_fstate(_lua);
-						auto& _entity = lua_toentity(_lua, 1);
-						const auto _name = luaL_checkstring(_lua, 2);
-						fluid::impl::set_element_name(_fstate, _entity, _name);
-						return 0;
-					}, 1);
-				lua_setfield(_lua, _element, "set_name");
-			};
-			lua_settop(_lua, _component + 1);
-			lua_setfield(_lua, _component, "element");
-
-			{
-				lua_newtable(_lua);
-				const auto _script = lua_gettop(_lua);
-			};
-			lua_settop(_lua, _component + 1);
-			lua_setfield(_lua, _component, "script");
-
-			lua_setfield(_lua, _idx, "component");
-
-
-			// add entity userdata type
-
-			luaL_newmetatable(_lua, entity_typename);
-			const auto _entityIdx = lua_gettop(_lua);
-			for (auto& r : entityfuncs)
-			{
-				if (r.func && r.name)
-				{
-					lua_pushlightuserdata(_lua, _fstate);
-					lua_pushcclosure(_lua, r.func, 1);
-					lua_setfield(_lua, _entityIdx, r.name);
-				};
-			};
-			lua_setfield(_lua, _idx, "entity");
-
-			return 1;
-		};
-	};
-};
 
 namespace fluid::impl
 {
@@ -354,7 +184,7 @@ namespace fluid::impl
 		_component.source().path = _path;
 
 		auto& _lua = _component.lua();
-		lua::Lib_Fluid::openlib(_lua, &_fstate);
+		
 		lua_setglobal(_lua, "fluid");
 	};
 };

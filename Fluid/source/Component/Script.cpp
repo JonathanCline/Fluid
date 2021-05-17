@@ -121,12 +121,10 @@ namespace PROJECT_NAMESPACE
 
 	void Script_ComponentSystem::insert(Entity _e)
 	{
-		this->set_component(_e, Script{ lua::LuaState{} });
+		this->set_component(_e, Script{ lua::LuaState{ luaL_newstate() } });
 		auto& _script = this->at(_e);
 		auto& _lua = _script.lua();
-
-		luaL_openlibs(_lua);
-
+		lua::open_default_libs(_lua);
 	};
 	void Script_ComponentSystem::update()
 	{

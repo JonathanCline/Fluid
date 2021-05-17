@@ -1,4 +1,4 @@
 set(add_files
-	"Fluid.h")
+	"FluidLib.h")
 
 ADD_SOURCES_LIST(${PROJECT_NAME} add_files)

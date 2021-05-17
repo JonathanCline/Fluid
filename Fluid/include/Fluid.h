@@ -8,6 +8,13 @@
 namespace fluid
 {
 	struct FluidState;
+	using FluidEntity = uint32_t;
+
+	enum ComponentType
+	{
+		ctScript,
+		ctElement
+	};
 
 	namespace impl
 	{
@@ -17,13 +24,39 @@ namespace fluid
 
 		FluidState& main_fluid_state();
 
-		template <typename FunctionT, typename... ArgTs> requires std::invocable<FunctionT, FluidState&, ArgTs...>
+		template <typename FunctionT, typename... ArgTs>
+		requires std::invocable<FunctionT, FluidState&, ArgTs...>
 		constexpr static auto invoke_with_main(const FunctionT& _func, ArgTs&&... _args)
-		{
-			return std::invoke(_func, main_fluid_state(), std::forward<ArgTs>(_args)...);
-		};
+			{
+				return std::invoke(_func, main_fluid_state(), std::forward<ArgTs>(_args)...);
+			};
+	
+
+
+		FluidEntity new_entity(FluidState& _fstate);
+		void destroy_entity(FluidState& _fstate, FluidEntity& _entity);
+
+		void set_script_path(FluidState& _fstate, FluidEntity _entity, const std::filesystem::path& _path);
+		bool execute_script(FluidState& _fstate, FluidEntity _entity);
+
+
+		void add_component(FluidState& _fstate, FluidEntity _entity, ComponentType _type);
+		bool has_component(FluidState& _fstate, FluidEntity _entity, ComponentType _type);
+		void remove_component(FluidState& _fstate, FluidEntity _entity, ComponentType _type);
+
+		std::vector<FluidEntity> get_elements(FluidState& _fstate);
+		void set_element_name(FluidState& _fstate, FluidEntity _entity, const std::string& _name);
+		std::string get_element_name(FluidState& _fstate, FluidEntity _entity);
+
+
 	};
 
+
+};
+
+
+namespace fluid
+{
 	static FluidState* start_fluid()
 	{
 		return impl::start_fluid();
@@ -33,18 +66,6 @@ namespace fluid
 	static void update()
 	{
 		return impl::invoke_with_main(impl::update);
-	};
-
-};
-
-namespace fluid
-{
-	using FluidEntity = uint32_t;
-
-	namespace impl
-	{
-		FluidEntity new_entity(FluidState& _fstate);
-		void destroy_entity(FluidState& _fstate, FluidEntity& _entity);
 	};
 
 	static FluidEntity new_entity()
@@ -57,20 +78,6 @@ namespace fluid
 	};
 
 
-
-
-	enum ComponentType
-	{
-		ctScript,
-		ctElement
-	};
-	
-	namespace impl
-	{
-		void add_component(FluidState& _fstate, FluidEntity _entity, ComponentType _type);
-		bool has_component(FluidState& _fstate, FluidEntity _entity, ComponentType _type);
-		void remove_component(FluidState& _fstate, FluidEntity _entity, ComponentType _type);
-	};
 
 	static void add_component(FluidEntity _entity, ComponentType _type)
 	{
@@ -87,14 +94,6 @@ namespace fluid
 
 	
 
-
-
-	namespace impl
-	{
-		void set_script_path(FluidState& _fstate, FluidEntity _entity, const std::filesystem::path& _path);
-		bool execute_script(FluidState& _fstate, FluidEntity _entity);
-	};
-
 	static void set_script_path(FluidEntity _entity, const std::filesystem::path& _path)
 	{
 		return impl::invoke_with_main(impl::set_script_path, _entity, _path);
@@ -105,13 +104,6 @@ namespace fluid
 	};
 
 
-
-	namespace impl
-	{
-		std::vector<FluidEntity> get_elements(FluidState& _fstate);
-		void set_element_name(FluidState& _fstate, FluidEntity _entity, const std::string& _name);
-		std::string get_element_name(FluidState& _fstate, FluidEntity _entity);
-	};
 
 	static std::vector<FluidEntity> get_elements()
 	{
@@ -125,8 +117,6 @@ namespace fluid
 	{
 		return impl::invoke_with_main(impl::get_element_name, _entity);
 	};
-
-
 
 };
 

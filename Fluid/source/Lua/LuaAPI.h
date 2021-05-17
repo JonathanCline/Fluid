@@ -25,8 +25,12 @@ namespace PROJECT_NAMESPACE::lua
 		{
 			return this->get();
 		};
+
+		using pimpl_ptr<lua_State, impl::destroy_luastate>::pimpl_ptr;
 	};
 
+
+	void open_default_libs(const LuaState& _lua);
 
 
 };

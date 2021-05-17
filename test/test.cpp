@@ -22,15 +22,12 @@ int main()
 	fluid::set_script_path(_yourMom, PROJECT_ROOT "elemscript.lua");
 	fluid::execute_script(_yourMom);
 
-	fluid::update();
-
 	auto _elements = fluid::get_elements();
 	std::cout << "Found Elements: \n";
 	for (auto& e : _elements)
 	{
 		std::cout << "  " << e << " : \"" << fluid::get_element_name(e) << "\"\n";
 	};
-
 
 	_timer.start();
 	while (!_timer.finished())

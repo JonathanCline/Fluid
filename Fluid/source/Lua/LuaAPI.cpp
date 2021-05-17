@@ -1,6 +1,6 @@
 #include "LuaAPI.h"
 
-#include "Lua/Fluid.h"
+#include "Lua/FluidLib.h"
 
 
 
@@ -17,6 +17,11 @@ namespace PROJECT_NAMESPACE::lua
 		};
 	};
 
+	void open_default_libs(const LuaState& _lua)
+	{
+		luaL_openlibs(_lua);
+		luaL_requiref(_lua, "fluid", Lib_Fluid::openlib, false);
+	};
 
 
 };
