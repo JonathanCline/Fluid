@@ -2,6 +2,10 @@ set(add_files
 	"Singleton.h"
 	"Guard.h"
 	"Memory.h"
+	
+	"Source.h"
+	"Source.cpp"
+
 	"Pimpl.h"
 	"Type.h")
 

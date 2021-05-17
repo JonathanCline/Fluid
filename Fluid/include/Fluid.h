@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <cstdint>
 #include <utility>
+#include <memory>
 
 namespace fluid
 {
@@ -26,8 +27,14 @@ namespace fluid
 	void destroy_entity(FluidEntity& _entity);
 
 
-	void set_script_path(FluidEntity _entity, const std::filesystem::path& _path);
-	bool execute_script(FluidEntity _entity);
+	void set_script_path(FluidEntity _entity, const std::filesystem::path& _path, bool _reloadOnChange);
+	void set_script_source(FluidEntity _entity, const std::string& _str);
+	
+	
+
+	bool reload_script(FluidEntity _entity);
+	bool run_script(FluidEntity _entity);
+	bool resume_script(FluidEntity _entity);
 
 
 	void add_component(FluidEntity _entity, ComponentType _type);

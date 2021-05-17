@@ -144,7 +144,6 @@ namespace fluid
 	};
 	bool has_component( FluidEntity _entity, ComponentType _type)
 	{
-		auto& _fstate = fluid_state();
 		auto& _system = get_system(_type);
 		return _system->contains(_entity);
 	};
@@ -159,21 +158,42 @@ namespace fluid
 
 namespace fluid
 {
-	bool execute_script(FluidEntity _entity)
+	void set_script_path(FluidEntity _entity, const std::filesystem::path& _path, bool _reloadOnChange)
+	{
+		auto& _component = get_component<ctScript>(_entity);
+		_component.source() = fluid::make_unique<Source_File>(_path);
+	};
+
+	void set_script_source(FluidEntity _entity, const std::string& _str)
+	{
+		auto& _component = get_component<ctScript>(_entity);
+		_component.source() = fluid::make_unique<Source_Data<std::string>>(_str);
+	};
+
+	
+	bool reload_script(FluidEntity _entity)
 	{
 		assert(has_component(_entity, ctScript));
 		auto& _comp = get_component<ctScript>(_entity);
 		return _comp.reload();
 	};
-
-	void set_script_path( FluidEntity _entity, const std::filesystem::path& _path)
+	bool resume_script(FluidEntity _entity)
 	{
-		auto& _component = get_component<ctScript>(_entity);
-		_component.source().path = _path;
-		auto& _lua = _component.lua();
-		lua_setglobal(_lua, "fluid");
+		assert(has_component(_entity, ctScript));
+		auto& _comp = get_component<ctScript>(_entity);
+		return _comp.resume() != _comp.Error;
 	};
+	bool run_script(FluidEntity _entity)
+	{
+		assert(has_component(_entity, ctScript));
+		auto& _comp = get_component<ctScript>(_entity);
+		return _comp.resume() != _comp.Error;
+	};
+
+
 };
+
+
 namespace fluid
 {
 	std::vector<FluidEntity> get_elements()

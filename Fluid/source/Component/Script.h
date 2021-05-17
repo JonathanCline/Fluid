@@ -4,12 +4,16 @@
 
 #include "ECS/ECS.h"
 
+#include "Utility/Source.h"
+
+
 #include <jclua/Table.h>
 #include <jclua/State.h>
 #include <jclua/Ref.h>
 #include <jclua/Thread.h>
 
 #include <filesystem>
+#include <chrono>
 
 namespace PROJECT_NAMESPACE
 {
@@ -17,14 +21,6 @@ namespace PROJECT_NAMESPACE
 	{
 		using namespace jc::lua;
 	};
-
-	using Path = std::filesystem::path;
-	struct File
-	{
-		std::string read_all();
-		Path path;
-	};
-
 
 	class Script
 	{
@@ -42,10 +38,10 @@ namespace PROJECT_NAMESPACE
 		auto& source() noexcept { return this->source_; };
 		const auto& source() const noexcept { return this->source_; };
 
-		State state() const noexcept;
 		bool reload();
-		State resume();
 
+		State state() const noexcept;
+		State resume();
 
 		Script(lua::LuaState _lua);
 
@@ -53,8 +49,10 @@ namespace PROJECT_NAMESPACE
 		lua::LuaState lua_;
 		lua::unique_ref main_;
 
-		File source_;
+		std::unique_ptr<Source> source_;
+		
 		State state_;
+
 	};
 
 	class Script_ComponentSystem : public ComponentSystem<Script>
@@ -64,7 +62,8 @@ namespace PROJECT_NAMESPACE
 		void update() override;
 
 	private:
-
+		size_t update_counter_ = 0;
+		size_t update_sources_interval_ = 30;
 	};
 
 	template <>
