@@ -37,9 +37,11 @@ namespace fluid
 	bool resume_script(FluidEntity _entity);
 
 
+
 	void add_component(FluidEntity _entity, ComponentType _type);
 	bool has_component(FluidEntity _entity, ComponentType _type);
 	void remove_component(FluidEntity _entity, ComponentType _type);
+
 
 
 	std::vector<FluidEntity> get_elements();

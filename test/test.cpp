@@ -9,13 +9,11 @@
 #ifdef assert
 #undef assert
 #endif
-
 #ifndef NDEBUG
 #define assert(cond) if(! ( cond ) ) { std::abort(); }
 #else
 #define assert(cond) static_assert(true, "")
 #endif
-
 
 using namespace std::chrono_literals;
 
@@ -30,29 +28,8 @@ int main()
 	auto _yourMom = fluid::new_entity();
 
 	fluid::add_component(_yourMom, fluid::ctScript);
-
-#if false
-	std::shared_ptr<std::string> _scriptDataSource{ new std::string{} };
-	auto& _script = *_scriptDataSource;
-	_script = R"(
-local fluid = require("fluid")
-if fluid then print("We good boss") else print("something wrong") end
-)";
-
-	fluid::set_script_source(_yourMom, _scriptDataSource);
-	assert(fluid::reload_script(_yourMom));
-	assert(fluid::run_script(_yourMom));
-
-	_script = R"(
-print("it works!")
-)";
-	fluid::reload_script(_yourMom);
-	fluid::run_script(_yourMom);
-#endif
-
 	fluid::set_script_path(_yourMom, TEST_SCRIPT_PATH, true);
 	fluid::reload_script(_yourMom);
-
 
 	_timer.start();
 	while (!_timer.finished())

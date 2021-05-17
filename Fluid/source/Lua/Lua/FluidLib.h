@@ -4,8 +4,17 @@
 
 #include <lua.hpp>
 
+#include <string_view>
+#include <array>
+#include <ranges>
+#include <cassert>
+
 namespace PROJECT_NAMESPACE::lua
 {
+	using namespace std::string_view_literals;
+
+
+
 	struct Lib_Fluid
 	{
 	private:
@@ -13,6 +22,7 @@ namespace PROJECT_NAMESPACE::lua
 
 		static auto& lua_toentity(lua_State* _lua, int _atIndex)
 		{
+			
 			auto _out = (fluid::FluidEntity*)luaL_checkudata(_lua, lua_absindex(_lua, _atIndex), entity_typename);
 			lua_assert(_out);
 			return *_out;
@@ -51,8 +61,6 @@ namespace PROJECT_NAMESPACE::lua
 			{ NULL, NULL }
 		};
 
-
-
 		static int add_component(lua_State* _lua)
 		{
 			auto& _entity = lua_toentity(_lua, 1);
@@ -74,6 +82,7 @@ namespace PROJECT_NAMESPACE::lua
 		};
 
 	public:
+		constexpr static auto libname = "foo";
 		static int openlib(lua_State* _lua)
 		{
 			luaL_newlibtable(_lua, libfuncs);
@@ -111,4 +120,5 @@ namespace PROJECT_NAMESPACE::lua
 			return 1;
 		};
 	};
+
 };
