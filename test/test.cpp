@@ -30,7 +30,6 @@ int main()
 		std::cout << "  " << e << " : \"" << fluid::get_element_name(_fld, e) << "\"\n";
 	};
 
-
 	_timer.start();
 	while (!_timer.finished())
 	{

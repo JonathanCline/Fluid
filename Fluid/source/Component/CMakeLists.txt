@@ -2,6 +2,8 @@
 set(add_sources
 	"Element.h"
 	"Element.cpp"
+	"Form.h"
+	"Form.cpp"
 	"Script.h"
 	"Script.cpp")
 

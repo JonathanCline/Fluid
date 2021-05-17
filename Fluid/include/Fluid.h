@@ -29,7 +29,8 @@ namespace fluid
 	enum ComponentType
 	{
 		ctScript,
-		ctElement
+		ctElement,
+		ctForm
 	};
 	
 	void add_component(FluidState& _fstate, FluidEntity _entity, ComponentType _type);
