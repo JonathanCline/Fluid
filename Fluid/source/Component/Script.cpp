@@ -16,39 +16,25 @@ namespace PROJECT_NAMESPACE
 		std::cout << _msg << '\n';
 	};
 
-	std::string File::read_all()
-	{
-		const auto& _path = this->path;
-
-		assert(fs::exists(_path));
-		std::ifstream _fstr{ _path };
-		assert(_fstr.is_open());
-
-		char _rbuff[512]{ 0 };
-		std::ranges::fill(_rbuff, 0);
-
-		std::string _out{};
-		while (!_fstr.eof())
-		{
-			_fstr.read(_rbuff, sizeof(_rbuff));
-			const auto _count = _fstr.gcount();
-			_out.append(_rbuff, _count);
-		};
-		return _out;
-	};
-
-	Script::State Script::state() const noexcept
-	{
-		return this->state_;
-	};
 	bool Script::reload()
 	{
 		auto& _lua = this->lua();
 		assert(_lua);
 
-		const auto _sourceData = this->source().read_all();
+		if (!this->source())
+		{
+			std::terminate();
+			return false;
+		};
+
+		const auto _sourceData = [this]()
+		{
+			auto _out = this->source()->read();
+			_out.push_back(std::byte{});
+			return _out;
+		}();
 		const auto _pretop = lua_gettop(_lua);
-		const auto _result = luaL_loadstring(_lua, _sourceData.c_str());
+		const auto _result = luaL_loadstring(_lua, reinterpret_cast<const char*>(_sourceData.data()));
 
 		switch (_result)
 		{
@@ -64,12 +50,16 @@ namespace PROJECT_NAMESPACE
 				log_error(_message);
 			};
 			this->state_ = State::Error;
-			std::terminate();
 			break;
 		};
 		lua_settop(_lua, _pretop);
 
-		return this->state_ == State::Yield;
+		return (this->state() == State::Yield);
+	};
+
+	Script::State Script::state() const noexcept
+	{
+		return this->state_;
 	};
 	Script::State Script::resume()
 	{
@@ -121,15 +111,14 @@ namespace PROJECT_NAMESPACE
 
 	void Script_ComponentSystem::insert(Entity _e)
 	{
-		this->set_component(_e, Script{ lua::LuaState{} });
+		this->set_component(_e, Script{ lua::LuaState{ luaL_newstate() } });
 		auto& _script = this->at(_e);
 		auto& _lua = _script.lua();
-
-		luaL_openlibs(_lua);
-
+		lua::open_default_libs(_lua);
 	};
 	void Script_ComponentSystem::update()
 	{
+		auto& _ucount = update_counter_;
 		for (auto& _scripted : *this)
 		{
 			auto& [_entity, _script] = _scripted;
@@ -138,6 +127,20 @@ namespace PROJECT_NAMESPACE
 				_script.resume();
 			};
 		};
+
+		if ((_ucount % this->update_sources_interval_) == 0)
+		{
+			for (auto& _scripted : *this)
+			{
+				auto& [_entity, _script] = _scripted;
+				if (_script.source()->has_changes())
+				{
+					_script.reload();
+				};
+			};
+		};
+		++_ucount;
+
 	};
 
 };

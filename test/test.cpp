@@ -6,31 +6,30 @@
 #include <chrono>
 #include <thread>
 
+#ifdef assert
+#undef assert
+#endif
+#ifndef NDEBUG
+#define assert(cond) if(! ( cond ) ) { std::abort(); }
+#else
+#define assert(cond) static_assert(true, "")
+#endif
+
 using namespace std::chrono_literals;
 
-
+constexpr auto TEST_SCRIPT_PATH = PROJECT_ROOT "elemscript.lua";
 
 int main()
 {
 	fluid::start_fluid();
-	
-	sae::timer _timer{ sae::seconds{2} };
+
+	sae::timer _timer{ sae::seconds{ 60 } };
 
 	auto _yourMom = fluid::new_entity();
 
 	fluid::add_component(_yourMom, fluid::ctScript);
-	fluid::set_script_path(_yourMom, PROJECT_ROOT "elemscript.lua");
-	fluid::execute_script(_yourMom);
-
-	fluid::update();
-
-	auto _elements = fluid::get_elements();
-	std::cout << "Found Elements: \n";
-	for (auto& e : _elements)
-	{
-		std::cout << "  " << e << " : \"" << fluid::get_element_name(e) << "\"\n";
-	};
-
+	fluid::set_script_path(_yourMom, TEST_SCRIPT_PATH, true);
+	fluid::reload_script(_yourMom);
 
 	_timer.start();
 	while (!_timer.finished())
