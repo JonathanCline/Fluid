@@ -8,37 +8,38 @@
 
 using namespace std::chrono_literals;
 
+
+
 int main()
 {
-	auto _fstate = fluid::start_fluid();
+	fluid::start_fluid();
 	
 	sae::timer _timer{ sae::seconds{2} };
 
-	auto& _fld = *_fstate;
-	auto _yourMom = fluid::new_entity(_fld);
+	auto _yourMom = fluid::new_entity();
 
-	fluid::add_component(_fld, _yourMom, fluid::ctScript);
-	fluid::set_script_path(_fld, _yourMom, PROJECT_ROOT "elemscript.lua");
-	fluid::execute_script(_fld, _yourMom);
+	fluid::add_component(_yourMom, fluid::ctScript);
+	fluid::set_script_path(_yourMom, PROJECT_ROOT "elemscript.lua");
+	fluid::execute_script(_yourMom);
 
-	fluid::update(*_fstate);
+	fluid::update();
 
-	auto _elements = fluid::get_elements(_fld);
+	auto _elements = fluid::get_elements();
 	std::cout << "Found Elements: \n";
 	for (auto& e : _elements)
 	{
-		std::cout << "  " << e << " : \"" << fluid::get_element_name(_fld, e) << "\"\n";
+		std::cout << "  " << e << " : \"" << fluid::get_element_name(e) << "\"\n";
 	};
 
 
 	_timer.start();
 	while (!_timer.finished())
 	{
-		fluid::update(*_fstate);
+		fluid::update();
 		std::this_thread::sleep_for(16ms);
 	};
 	
-	fluid::destroy_entity(_fld, _yourMom);
-	fluid::shutdown_fluid(_fstate);
+	fluid::destroy_entity(_yourMom);
+	fluid::shutdown_fluid();
 	return 0;
 };

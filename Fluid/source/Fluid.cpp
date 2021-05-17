@@ -1,13 +1,14 @@
 #include "Fluid.h"
 
-#include "Utility/Singleton.h"
-#include "Utility/Pimpl.h"
-
 #include "Window/Window.h"
 
 #include "ECS/ECS.h"
 #include "Component/Script.h"
 #include "Component/Element.h"
+
+#include "Utility/Memory.h"
+#include "Utility/Singleton.h"
+#include "Utility/Pimpl.h"
 
 
 #include <SAELib_Type.h>
@@ -23,11 +24,6 @@
 #include <concepts>
 #include <type_traits>
 #include <array>
-
-
-#define fluidns PROJECT_NAMESPACE
-
-
 
 namespace fluid
 {
@@ -120,7 +116,7 @@ namespace fluid
 
 };
 
-namespace fluidns
+namespace fluid
 {
 	struct FluidState
 	{
@@ -134,30 +130,80 @@ namespace fluidns
 			this->csystems.add_to_ecs(this->ecs);
 		};
 	};
+};
 
+namespace fluid::impl
+{
+	namespace impl
+	{
+		extern inline std::unique_ptr<FluidState> FLUID_STATE{ nullptr };
+		auto& get_fluid_state()
+		{
+			return FLUID_STATE;
+		};
+
+		bool has_fluid_state()
+		{
+			const auto& _ptr = get_fluid_state();
+			return (bool)_ptr;
+		};
+		FluidState& fluid_state()
+		{
+			assert(has_fluid_state());
+			return *get_fluid_state();
+		};
+	};
+	
 	FluidState* start_fluid()
 	{
-		return new FluidState{};
+		assert(!impl::has_fluid_state());
+		auto& _fstate = impl::get_fluid_state();
+		
+		assert(!_fstate); // sanity checking for lack of fluid state presence
+		_fstate = make_unique<FluidState>();
+		
+		assert(_fstate && impl::has_fluid_state()); // sanity checking for fluid state presence
+		return _fstate.get();
 	};
 	void shutdown_fluid(FluidState*& _fluid)
 	{
-		delete _fluid;
-		_fluid = nullptr;
-	};
+		assert(_fluid == impl::get_fluid_state().get());
+		if (_fluid)
+		{
+			assert(impl::has_fluid_state());
+			impl::get_fluid_state().reset();
+			_fluid = nullptr;
+		};
 
+		// make sure synced
+		assert(!_fluid && !impl::has_fluid_state());
+	};
 	void update(FluidState& _fluid)
 	{
 		_fluid.ecs.update();
 	};
 
-
-	
-
-
-
+	FluidState& main_fluid_state()
+	{
+		assert(impl::has_fluid_state());
+		return impl::fluid_state();
+	};
+};
+namespace fluid
+{
+	void shutdown_fluid()
+	{
+		if (impl::impl::has_fluid_state())
+		{
+			auto _mstate = &impl::main_fluid_state();
+			impl::shutdown_fluid(_mstate);
+		};
+	};
 };
 
-namespace fluid
+
+
+namespace fluid::impl
 {
 
 
@@ -212,7 +258,7 @@ namespace fluid
 
 
 };
-namespace fluid::lua
+namespace fluid::impl::lua
 {
 	struct Lib_Fluid
 	{
@@ -235,7 +281,7 @@ namespace fluid::lua
 		static int new_entity(lua_State* _lua)
 		{
 			auto& _fstate = get_fstate(_lua);
-			auto _entity = fluid::new_entity(_fstate);
+			auto _entity = fluid::impl::new_entity(_fstate);
 
 			auto _memory = (decltype(_entity)*)lua_newuserdata(_lua, sizeof(_entity));
 			*_memory = _entity;
@@ -247,7 +293,7 @@ namespace fluid::lua
 		{
 			auto& _fstate = get_fstate(_lua);
 			auto& _entity = lua_toentity(_lua, 1);
-			fluid::destroy_entity(_fstate, _entity);
+			fluid::impl::destroy_entity(_fstate, _entity);
 			return 0;
 		};
 
@@ -259,7 +305,7 @@ namespace fluid::lua
 			auto& _fstate = get_fstate(_lua);
 			auto& _entity = lua_toentity(_lua, 1);
 			const auto _type = luaL_checkinteger(_lua, 2);
-			lua_pushboolean(_lua, fluid::has_component(_fstate, _entity, (ComponentType)_type));
+			lua_pushboolean(_lua, fluid::impl::has_component(_fstate, _entity, (ComponentType)_type));
 			return 1;
 		};
 
@@ -278,7 +324,7 @@ namespace fluid::lua
 			auto& _fstate = get_fstate(_lua);
 			auto& _entity = lua_toentity(_lua, 1);
 			const auto _type = (ComponentType)luaL_checkinteger(_lua, 2);
-			fluid::add_component(_fstate, _entity, _type);
+			fluid::impl::add_component(_fstate, _entity, _type);
 			return 0;
 		};
 
@@ -337,7 +383,7 @@ namespace fluid::lua
 						auto& _fstate = get_fstate(_lua);
 						auto& _entity = lua_toentity(_lua, 1);
 						const auto _name = luaL_checkstring(_lua, 2);
-						fluid::set_element_name(_fstate, _entity, _name);
+						fluid::impl::set_element_name(_fstate, _entity, _name);
 						return 0;
 					}, 1);
 				lua_setfield(_lua, _element, "set_name");
@@ -375,7 +421,7 @@ namespace fluid::lua
 	};
 };
 
-namespace fluid
+namespace fluid::impl
 {
 	bool execute_script(FluidState& _fstate, FluidEntity _entity)
 	{
@@ -396,7 +442,7 @@ namespace fluid
 		lua_setglobal(_lua, "fluid");
 	};
 };
-namespace fluid::lua
+namespace fluid::impl::lua
 {
 
 };
@@ -405,36 +451,40 @@ namespace fluid::lua
 
 namespace fluid
 {
-	std::vector<FluidEntity> get_elements(FluidState& _fstate)
+	namespace impl
 	{
-		auto& _system = get_system<ctElement>(_fstate);
-		auto& _vec = _system->container();
-		
-		std::vector<FluidEntity> _out{};
-		_out.resize(_vec.size());
-		auto _it = _out.begin();
-		for (auto& e : _vec)
+		std::vector<FluidEntity> get_elements(FluidState& _fstate)
 		{
-			*_it = e.first;
-			++_it;
+			auto& _system = get_system<ctElement>(_fstate);
+			auto& _vec = _system->container();
+
+			std::vector<FluidEntity> _out{};
+			_out.resize(_vec.size());
+			auto _it = _out.begin();
+			for (auto& e : _vec)
+			{
+				*_it = e.first;
+				++_it;
+			};
+
+			return _out;
 		};
 
-		return _out;
+		void set_element_name(FluidState& _fstate, FluidEntity _entity, const std::string& _name)
+		{
+			auto& _comp = get_component<ctElement>(_fstate, _entity);
+			_comp.name = _name;
+		};
+		std::string get_element_name(FluidState& _fstate, FluidEntity _entity)
+		{
+			const auto& _comp = get_component<ctElement>(_fstate, _entity);
+			return _comp.name;
+		};
 	};
 	
-	void set_element_name(FluidState& _fstate, FluidEntity _entity, const std::string& _name)
+	namespace lua
 	{
-		auto& _comp = get_component<ctElement>(_fstate, _entity);
-		_comp.name = _name;
-	};
-	std::string get_element_name(FluidState& _fstate, FluidEntity _entity)
-	{
-		const auto& _comp = get_component<ctElement>(_fstate, _entity);
-		return _comp.name;
-	};
-};
-namespace fluid::lua
-{
 
+	};
 };
 
