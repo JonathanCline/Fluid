@@ -6,7 +6,6 @@
 
 #include "Utility/Source.h"
 
-
 #include <jclua/Table.h>
 #include <jclua/State.h>
 #include <jclua/Ref.h>

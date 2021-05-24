@@ -116,12 +116,22 @@ namespace PROJECT_NAMESPACE
 		auto cend() const noexcept { return this->data_.end(); };
 		auto end() const noexcept { return this->cend(); };
 
+		auto find(Entity _e) noexcept
+		{
+			return this->container().find(_e);
+		};
+		const auto find(Entity _e) const noexcept
+		{
+			return this->container().find(_e);
+		};
+
 		void set_component(Entity _e, component_type _component)
 		{
 			this->data_.insert({ _e, std::move(_component) });
 		};
 
 	public:
+
 
 		// aborts if contains(_e) would return false
 		component_type& at(Entity _e)
@@ -137,7 +147,6 @@ namespace PROJECT_NAMESPACE
 		auto& operator[](Entity _e) { return this->at(_e); };
 		const auto& operator[](Entity _e) const { return this->at(_e); };
 
-	public:
 		bool contains(Entity _e) const override
 		{
 			return this->data_.contains(_e);

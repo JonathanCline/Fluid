@@ -1,5 +1,2 @@
-local fluid = fluid
-print("foo")
-
-print("penis penis")
-
+local fluid = require("fluid")
+print("foo", "penis penis")

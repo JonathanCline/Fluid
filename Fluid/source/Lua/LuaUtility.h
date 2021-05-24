@@ -192,6 +192,14 @@ namespace PROJECT_NAMESPACE
 			return 1;
 		};
 	};
+
+	// Helper for lua cfunction references, makes the push() interface a bit nicer
+	template <>
+	struct push_t<int(lua_State*)> : public push_t<lua_CFunction>
+	{};
+
+
+
 	template <library T>
 	struct push_t<T>
 	{

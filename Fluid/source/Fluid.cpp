@@ -31,14 +31,46 @@ namespace fluid
 		EntityComponentSystem ecs{};
 		FluidECS csystems{};
 
-		Window main_window{};
+		struct MainWindow
+		{
+			Window window{};
+			FluidEntity entity;
+		};
+
+		MainWindow main_window;
 
 		FluidState()
 		{
 			this->csystems.add_to_ecs(this->ecs);
+			
+			auto& _windowEntity = this->main_window.entity;
+			_windowEntity = this->ecs.new_entity();
+			this->csystems.get<Widget>()->insert(_windowEntity);
+
+			// Set glfw user pointer to point to this
+			auto& _window = this->main_window.window.get();
+			glfwSetWindowUserPointer(_window, this);
+
+			// Set widget close callback
+			glfwSetWindowCloseCallback(_window, [](GLFWwindow* _window)
+				{
+					auto& _handle = *static_cast<FluidState*>(glfwGetWindowUserPointer(_window));
+					auto& _csys = *_handle.csystems.get<Widget>();
+					_csys.close(_handle.main_window.entity);
+				});
+
 		};
+
+		FluidState(const FluidState&) = delete;
+		FluidState(FluidState&&) = delete;
 	};
 };
+
+
+
+/*
+	Fluid state management and major interactions
+*/
 
 namespace fluid
 {
@@ -93,10 +125,30 @@ namespace fluid
 	void update()
 	{
 		auto& _fluid = fluid_state();
+
+		auto& _window = _fluid.main_window.window;
+		_window.clear();
 		_fluid.ecs.update();
+		_window.swap_buffers();
+
+		glfwPollEvents();
+
+	};
+
+
+	FluidEntity get_main_window()
+	{
+		auto& _fluid = fluid_state();
+		return _fluid.main_window.entity;
 	};
 
 };
+
+
+
+/*
+	General ECS interactions
+*/
 
 namespace fluid
 {
@@ -156,6 +208,12 @@ namespace fluid
 
 };
 
+
+
+/*
+	Script component interactions
+*/
+
 namespace fluid
 {
 	void set_script_path(FluidEntity _entity, const std::filesystem::path& _path, bool _reloadOnChange)
@@ -194,6 +252,11 @@ namespace fluid
 };
 
 
+
+/*
+	Element component interactions
+*/
+
 namespace fluid
 {
 	std::vector<FluidEntity> get_elements()
@@ -223,5 +286,21 @@ namespace fluid
 		const auto& _comp = get_component<ctElement>(_entity);
 		return _comp.name;
 	};
+};
+
+
+
+/*
+	Widget component interactions
+*/
+
+namespace fluid
+{
+	void set_widget_close_callback(FluidEntity _entity, WidgetCloseCallback _callback)
+	{
+		auto& _comp = get_component<ctWidget>(_entity);
+		_comp.on_close = _callback;
+	};
+
 };
 

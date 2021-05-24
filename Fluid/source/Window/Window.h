@@ -23,6 +23,19 @@ namespace PROJECT_NAMESPACE
 		{};
 
 	public:
+		GLFWwindow* const& get() const noexcept { return this->window_.get(); };
+
+
+
+
+		void clear(unsigned _bits);
+		void clear();
+
+		void swap_buffers();
+
+
+
+
 
 		explicit Window(std::nullptr_t) :
 			Window{ (GLFWwindow*)nullptr }
@@ -35,5 +48,8 @@ namespace PROJECT_NAMESPACE
 	private:
 		GLFWLib glfw_{};
 		pimpl_ptr<GLFWwindow, impl::destroy_window> window_{ nullptr };
+
+		unsigned buffer_bits_ = 0;
 	};
+
 };

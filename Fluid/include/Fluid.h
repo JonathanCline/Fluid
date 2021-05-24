@@ -14,7 +14,8 @@ namespace fluid
 	enum ComponentType
 	{
 		ctScript,
-		ctElement
+		ctElement,
+		ctWidget
 	};
 
 
@@ -48,4 +49,19 @@ namespace fluid
 	void set_element_name(FluidEntity _entity, const std::string& _name);
 	std::string get_element_name(FluidEntity _entity);
 
+
+	
+	FluidEntity get_main_window();
+
+
+
+	using WidgetCloseCallback = void(*)(FluidEntity);
+	// call with _callback = nullptr to remove the callback from the widget
+	void set_widget_close_callback(FluidEntity _entity, WidgetCloseCallback _callback);
+
+
+
+
+	
 };
+
