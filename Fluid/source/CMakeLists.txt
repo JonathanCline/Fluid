@@ -13,3 +13,8 @@ endmacro(ADD_SUBDIRS_LIST)
 
 ADD_SUBDIRS_LIST(lib_subs)
 
+
+set(source_list
+	"FluidState.h")
+
+ADD_SOURCES_LIST(${PROJECT_NAME} source_list)

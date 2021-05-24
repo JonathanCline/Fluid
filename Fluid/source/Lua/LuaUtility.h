@@ -133,6 +133,82 @@ namespace PROJECT_NAMESPACE
 			return lua_toboolean(_lua, _idx);
 		};
 	};
+	
+
+	template <>
+	struct push_t<const char*>
+	{
+		int operator()(lua_State* _lua, const char* _val)
+		{
+			lua_pushstring(_lua, _val);
+			return 1;
+		};
+	};
+	template <>
+	struct pull_t<const char*>
+	{
+		const char* operator()(lua_State* _lua, const index_abs _idx)
+		{
+			return lua_tostring(_lua, _idx);
+		};
+	};
+
+
+
+	template <>
+	struct push_t<std::string>
+	{
+		int operator()(lua_State* _lua, const std::string& _val)
+		{
+			lua_pushstring(_lua, _val.c_str());
+			return 1;
+		};
+	};
+	template <>
+	struct pull_t<std::string>
+	{
+		std::string operator()(lua_State* _lua, const index_abs _idx)
+		{
+			return std::string{ lua_tostring(_lua, _idx) };
+		};
+	};
+
+	template <>
+	struct push_t<float_t>
+	{
+		int operator()(lua_State* _lua, float_t _val)
+		{
+			lua_pushnumber(_lua, (lua_Number)_val);
+			return 1;
+		};
+	};
+	template <>
+	struct pull_t<float_t>
+	{
+		auto operator()(lua_State* _lua, const index_abs _idx)
+		{
+			return (float_t)lua_tonumber(_lua, _idx);
+		};
+	};
+
+	template <>
+	struct push_t<double_t>
+	{
+		int operator()(lua_State* _lua, double_t _val)
+		{
+			lua_pushnumber(_lua, (lua_Number)_val);
+			return 1;
+		};
+	};
+	template <>
+	struct pull_t<double_t>
+	{
+		auto operator()(lua_State* _lua, const index_abs _idx)
+		{
+			return (double_t)lua_tonumber(_lua, _idx);
+		};
+	};
+
 
 
 

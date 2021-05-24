@@ -2,7 +2,16 @@
 
 #include "Fluid.h"
 
+#include "FluidState.h"
+
+#include "ECS/FluidECS.h"
+#include "Component/Element.h"
+
+
+
+#include "Lua/LuaUtility.h"
 #include <lua.hpp>
+
 
 #include <string_view>
 #include <array>
@@ -20,14 +29,26 @@ namespace PROJECT_NAMESPACE::lua
 	private:
 		constexpr static const char* entity_typename = "Fluid.TEntity";
 
+	public:
 		static auto& lua_toentity(lua_State* _lua, int _atIndex)
 		{
-			
 			auto _out = (fluid::FluidEntity*)luaL_checkudata(_lua, lua_absindex(_lua, _atIndex), entity_typename);
 			lua_assert(_out);
 			return *_out;
 		};
+		static auto lua_toentity_id(lua_State* _lua, int _index)
+		{
+			if (lua_isinteger(_lua, _index))
+			{
+				return (fluid::FluidEntity)lua_tointeger(_lua, _index);
+			}
+			else
+			{
+				return lua_toentity(_lua, _index);
+			};
+		};
 
+	private:
 		static int new_entity(lua_State* _lua)
 		{
 			auto _entity = fluid::new_entity();
@@ -82,7 +103,7 @@ namespace PROJECT_NAMESPACE::lua
 		};
 
 	public:
-		constexpr static auto libname = "foo";
+		constexpr static auto libname = "fluid";
 		static int openlib(lua_State* _lua)
 		{
 			luaL_newlibtable(_lua, libfuncs);
@@ -98,13 +119,18 @@ namespace PROJECT_NAMESPACE::lua
 			lua_pushinteger(_lua, (lua_Integer)ctElement);
 			lua_setfield(_lua, _idx, "ctElement");
 
+			lua_pushinteger(_lua, (lua_Integer)ctWidget);
+			lua_setfield(_lua, _idx, "ctWidget");
+
+
+
+
+
 
 			lua_newtable(_lua);
 			const auto _component = lua_gettop(_lua);
 
-
 			// add entity userdata type
-
 			luaL_newmetatable(_lua, entity_typename);
 			const auto _entityIdx = lua_gettop(_lua);
 			for (auto& r : entityfuncs)
@@ -117,8 +143,29 @@ namespace PROJECT_NAMESPACE::lua
 			};
 			lua_setfield(_lua, _idx, "entity");
 
+			// Element sublibrary
+			lua_newtable(_lua);
+			lua_pushcfunction(_lua, [](lua_State* _lua) -> int
+				{
+					lua_newtable(_lua);
+					const auto _idx = lua_gettop(_lua);
+					
+					// Push elements
+					auto& _system = *fluid_state().csystems.get<Element>();
+					for (auto& e : _system.container())
+					{
+						push(_lua, e.first);
+						push(_lua, e.second.name);
+						lua_settable(_lua, _idx);
+					};
+					return 1;
+				});
+			lua_setfield(_lua, -2, "list");
+			lua_setfield(_lua, _idx, "element");
+
 			return 1;
 		};
 	};
+	using FluidLib = Lib_Fluid;
 
 };
