@@ -16,6 +16,33 @@ namespace PROJECT_NAMESPACE
 		std::cout << _msg << '\n';
 	};
 
+	bool Script::is_defined(const std::string& _name)
+	{
+		auto& _lua = this->lua();
+		lua_getglobal(_lua, _name.c_str());
+		const auto _out = !lua_isnil(_lua, -1);
+		lua_pop(_lua, 1);
+		return _out;
+	};
+	void Script::invoke(const std::string& _name, int _nargs)
+	{
+		assert(this->is_defined(_name));
+		auto& _lua = this->lua();
+		
+		lua_getglobal(_lua, _name.c_str());
+		assert(lua_isfunction(_lua, -1));
+		if (_nargs > 0)
+		{
+			lua_rotate(_lua, lua_gettop(_lua) - _nargs, 1);
+		};
+
+		const auto _result = lua_pcall(_lua, _nargs, LUA_MULTRET, 0);
+		if (_result != LUA_OK)
+		{
+			log_error(luaL_optstring(_lua, -1, "lua error"));
+		};
+	};
+
 	bool Script::reload()
 	{
 		auto& _lua = this->lua();

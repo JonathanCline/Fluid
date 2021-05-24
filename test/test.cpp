@@ -2,6 +2,8 @@
 
 #include <SAELib_Timer.h>
 
+#include <lua.hpp>
+
 #include <iostream>
 #include <chrono>
 #include <thread>
@@ -32,11 +34,9 @@ int main()
 
 	sae::timer _timer{ sae::milliseconds{ 16 } };
 
-	auto _yourMom = fluid::new_entity();
-
-	fluid::add_component(_yourMom, fluid::ctScript);
-	fluid::set_script_path(_yourMom, TEST_SCRIPT_PATH, true);
-	fluid::reload_script(_yourMom);
+	fluid::add_component(_window, fluid::ctScript);
+	fluid::set_script_path(_window, TEST_SCRIPT_PATH, true);
+	fluid::reload_script(_window);
 
 	while (KEEP_ALIVE)
 	{
@@ -51,7 +51,6 @@ int main()
 		};
 	};
 	
-	fluid::destroy_entity(_yourMom);
 	fluid::shutdown_fluid();
 	return 0;
 };

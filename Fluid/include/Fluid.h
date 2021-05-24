@@ -58,6 +58,8 @@ namespace fluid
 	using WidgetCloseCallback = void(*)(FluidEntity);
 	// call with _callback = nullptr to remove the callback from the widget
 	void set_widget_close_callback(FluidEntity _entity, WidgetCloseCallback _callback);
+	void close_widget(FluidEntity _entity);
+
 
 
 

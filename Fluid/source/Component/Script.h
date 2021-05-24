@@ -37,6 +37,12 @@ namespace PROJECT_NAMESPACE
 		auto& source() noexcept { return this->source_; };
 		const auto& source() const noexcept { return this->source_; };
 
+
+		bool is_defined(const std::string& _name);
+		void invoke(const std::string& _name, int _nargs);
+
+
+
 		bool reload();
 
 		State state() const noexcept;

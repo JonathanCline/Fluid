@@ -188,6 +188,11 @@ namespace fluid
 		auto& _comp = get_component<ctWidget>(_entity);
 		_comp.on_close = _callback;
 	};
+	void close_widget(FluidEntity _entity)
+	{
+		auto& _csys = get_system<ctWidget>();
+		_csys->close(_entity);
+	};
 
 };
 
