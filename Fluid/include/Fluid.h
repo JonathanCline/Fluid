@@ -15,7 +15,8 @@ namespace fluid
 	{
 		ctScript,
 		ctElement,
-		ctWidget
+		ctWidget,
+		ctArt
 	};
 
 
@@ -63,6 +64,8 @@ namespace fluid
 
 
 
+
+	
 
 	
 };

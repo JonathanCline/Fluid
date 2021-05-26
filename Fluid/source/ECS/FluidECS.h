@@ -5,10 +5,9 @@
 #include "Component/Element.h"
 #include "Component/Script.h"
 #include "Component/Widget.h"
+#include "Component/Art.h"
 
 #include "Utility/Type.h"
-
-
 
 namespace PROJECT_NAMESPACE
 {
@@ -18,13 +17,9 @@ namespace PROJECT_NAMESPACE
 	using component_typelist = std::tuple<
 		Script,
 		Element,
-		Widget
+		Widget,
+		Art
 	>;
-
-
-
-
-
 
 
 	template <ComponentType T> requires ((size_t)T < std::tuple_size_v<component_typelist>)

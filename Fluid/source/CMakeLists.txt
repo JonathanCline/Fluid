@@ -1,6 +1,7 @@
 set(lib_subs
-	"ECS"
+	"Art"
 	"Component"
+	"ECS"
 	"Lua"
 	"Utility"
 	"Window")

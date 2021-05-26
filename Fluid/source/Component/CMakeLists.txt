@@ -1,5 +1,8 @@
 
 set(add_sources
+	"Art.h"
+	"Art.cpp"
+
 	"Element.h"
 	"Element.cpp"
 

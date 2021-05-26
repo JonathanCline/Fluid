@@ -98,4 +98,30 @@ namespace PROJECT_NAMESPACE
 	requires requires () { typename tuple_element_index<T, Tup>::type; }
 	constexpr static auto tuple_element_index_v = tuple_element_index<T, Tup>::value;
 
+
+
+
+
+	namespace impl
+	{
+		template <auto Op, typename... T> requires std::invocable<decltype(Op), const T&...>
+		consteval static bool passes_lamda_concept()
+		{
+			return true;
+		};
+		template <auto Op, typename... T>
+		consteval static bool passes_lamda_concept()
+		{
+			return false;
+		};
+	};
+
+	template <auto ConceptLamda, typename... T>
+	struct passes_concept : std::bool_constant<impl::passes_lamda_concept<ConceptLamda, T...>()> {};
+
+	template <auto ConceptLamda, typename... T>
+	constexpr static bool passes_concept_v = passes_concept<ConceptLamda, T...>::value;
+
+#define CONCEPTWRAP(cxname) [](auto... f) requires cxname <decltype(f)...>{}
+
 };

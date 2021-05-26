@@ -23,8 +23,20 @@ constexpr auto TEST_SCRIPT_PATH = PROJECT_ROOT "elemscript.lua";
 
 extern inline bool KEEP_ALIVE = true;
 
+
+
+
+
+
+
+
+
+
+
 int main()
 {
+
+	
 	fluid::start_fluid();
 	const auto _window = fluid::get_main_window();
 	fluid::set_widget_close_callback(_window, [](fluid::FluidEntity _window)
